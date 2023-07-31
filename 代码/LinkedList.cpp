@@ -182,7 +182,129 @@ void ReverseList(LinkList &L) { // 5. 逆转带头结点链表，且O(1)空间�
     h->next = p; // 将头结点指向新的第一个元素，即原来的表尾
 }
 
+void SortedList(LinkList &L) { // 6. 排序
+    /**
+     * 维护一个有序链表，每次从原链表中插入一个到lowerbound位置
+    */
+    LNode *p = L->next, *q = L, *tp;
+    L->next = NULL; //  此时L就是空链表，p指向原来的元素，不断追加到L上
+    while(p != NULL) {
+        tp = p->next;
+        q = L;
+        while(q->next != NULL && q->next->data < p->data) { // 寻找lowerbound位置
+            q = q->next;
+        }
+        p->next = q->next;
+        q->next = p; // 新元素插入至有序表
+        p = tp; // 继续插入下一个
+    }    
+}
 
+void DeleteElemBetweenValue(LinkList &L, ElemType s, ElemType e) { // 7. 删除值介于(s, e)之间的元素
+    /**
+     * 遍历并删除，记住单链表每次都是用前驱判断后继就行
+    */
+    LNode *p = L, *tp;
+    while(p->next != NULL) {
+        if (p->next->data > s && p->next->data < e) {
+            tp = p->next;
+            p->next = p->next->next;
+            free(tp);
+        } else { // 这里不是每次都到next，因为删除之后结点指向原来的->next->next，相当于已经执行next了
+            p = p->next;
+        }
+    }
+}
+
+LinkList SelectCommonNode(LinkList &L1, LinkList &L2) { // 8. 找两个链表的公共结点
+    /**
+     * 公共结点后的数据都相同，如果是双链表，可以从尾部开始找起看何时不同
+     * 可以考虑先遍历到尾结点看是否相同判断是否有公共结点，若有则从等长的地方开始同步遍历至结点相等即可
+     * （结点判断不是判断值，直接比较指针即可，记得指针本质就是个地址就行，东西相同地址相同则指针相同，充要）
+    */
+    LNode *p1 = L1, *p2 = L2;
+    int len1 = 0, len2 = 0, d; // 记录长度
+    
+    while(p1->next != NULL) {
+        p1 = p1->next;
+        len1++;
+    }
+    while(p2->next != NULL) {
+        p2 = p2->next;
+        len2++;
+    }
+
+    if (p1 != p2) { // 尾结点不同
+        return NULL;
+    } else if (len1 > len2) { // L1比L2，长要先走这部分差值到等长部分
+        d = len1 - len2;
+        p1 = L1->next;p2 = L2->next;
+        while (d--){
+            p1 = p1->next;
+        }
+        
+    } else if (len2 > len1) { // L2比L1，长要先走这部分差值到等长部分
+        d = len2 - len1;
+        p1 = L1->next;p2 = L2->next;
+        while (d--){
+            p2 = p2->next;
+        }
+    }
+
+    while(p1 != NULL && p2 != NULL) {
+        if (p1 == p2) { // 相等时返回
+            return p1;
+        }
+        p1 = p1->next;
+        p2 = p2->next;
+    }
+    return NULL;
+}
+
+void SortedDisplayAndDestroy(LinkList &L) { // 9. 有序输出并销毁链表
+    /**
+     * 可以先用之前的排序函数排好序，再依次打印并free
+     * 也可以每次找最小的直接打印 free掉
+    */
+    LNode *p, *q, *tp;
+    ElemType min = 0x7fffffff;
+    while (L->next != NULL) {
+        p = L;
+        min = 0x7fffffff;
+        while (p->next != NULL) { // 枚举前驱，比较后继
+            if (p->next->data < min) {
+                min = p->next->data;
+                q = p;
+            }
+            p = p->next;
+        }
+        tp = q->next;
+        q->next = q->next->next;
+        printf("%d ", tp->data);
+        free(tp); // 打印并删除最小值
+    }
+    free(L);
+}
+
+void SplitList(LinkList &L, LinkList &O, LinkList &E) { // 10. 拆成两个带头结点的链表，分别保留奇数号和偶数号元素
+    LNode *p = L->next, *o = O, *e = E, *tp;
+    int cnt = 1;
+    O->next = E->next = NULL;
+    while(p != NULL) {
+        tp = p->next;
+        if (cnt % 2 == 1) { // 奇数号
+            p->next = o->next;
+            o->next = p;
+            o = o->next;
+        } else { // 偶数号
+            p->next = e->next;
+            e->next = p;
+            e = e->next;
+        }
+        cnt++;
+        p = tp;
+    }
+}
 
 void DisplayList(LinkList &L) {
     LNode *p = L->next;
@@ -195,9 +317,13 @@ void DisplayList(LinkList &L) {
 }
 
 int main() {
-    LinkList L;
+    LinkList L, O, E;
     L = (LinkList)malloc(sizeof(LNode));
     L->next = NULL;
+    O = (LinkList)malloc(sizeof(LNode));
+    O->next = NULL;
+    E = (LinkList)malloc(sizeof(LNode));
+    E->next = NULL;
 
     LNode *s1 = (LNode*)malloc(sizeof(LNode));
     s1->data = 3;
@@ -216,8 +342,14 @@ int main() {
 
     // DeleteElemByValue(L, 3);
     // ReverseDisplayList(L->next);
-    DeleteMinElem(L);
+    // DeleteMinElem(L);
     // ReverseList(L);
+    // SortedList(L);
+    // DeleteElemBetweenValue(L, 3, 5);
+    // SortedDisplayAndDestroy(L);
+    SplitList(L, O, E);
 
-    DisplayList(L);
+    // DisplayList(L);
+    DisplayList(O);
+    DisplayList(E);
 }
