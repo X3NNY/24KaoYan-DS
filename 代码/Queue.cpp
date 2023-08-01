@@ -138,6 +138,38 @@ bool QueueEmptySimulate(SqStack &S1, SqStack &S2) { // 3. 两个栈模拟队列 
     return StackEmpty(S1) && StackEmpty(S2); // 如果两个栈都为空则队列为空
 }
 
+// 3.3题目
+
+void CarFerry(char* cars) { // 4. 汽车轮渡
+    /**
+     * 有个优先级概念，所以需要另一个队列维护等待
+     * 这里我用C代表客车，T代表货车
+     * 标答是直接给客车货车分队列了，我这里代表他们在一起等
+    */
+    int ccount = 0, tcount = 0; //分别记录客车和货车数量
+    SqQueue Q, W; // W为货车等待队列
+    InitQueue(Q);
+    InitQueue(W);
+    ElemType c;
+    for(int i = 0; cars[i] != '\0'; i++) {
+        if (cars[i] == 'C') {
+            if (ccount + tcount < 10) {
+                EnQueue(Q, cars[i]);
+                ccount++;
+            }
+        } else if (cars[i] == 'T') {
+            EnQueue(W, cars[i]); // 先放到等待队列
+        }
+
+        if (ccount % 4 == 0 && ccount + tcount < 10) { // 如果放了四辆客车 且还没放满 放个货车进去
+            DeQueue(W, c);
+            EnQueue(Q, c);
+            tcount++;
+        }
+    }
+
+}
+
 void DisplayList(SqQueue &Q) {
     ElemType x;
     while(!isEmpty(Q)) {
