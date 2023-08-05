@@ -150,6 +150,70 @@ int CalcPoly(int n, int x) { // 3. 使用栈计算递归表达式
     return P[n]; // 计算完成后Pn即是答案
 }
 
+
+int priority(char op) { // 返回运算符优先级
+    if (op == '*' || op == '/') {
+        return 1;
+    } else if (op == '+' || op == '-') {
+        return 0;
+    } else {
+        return -1;
+    }
+}
+
+void expr_convert(const char* expr, char rexpr[]) { // 选择题11题，中缀表达式转后缀表达式
+    /**
+     * 如果操作符比栈顶的操作符优先级高，例如a*b+c，则出栈，因为此时b是*的操作数而不是+的操作数，+需要等待前面运算的结果作为操作数。
+     * 遇到(需要等到)再处理。
+     * 
+     * 这里这样操作是因为只包含左结合操作符，如果有右结合操作符，例如a^a^a = a^(a^a)的话，则遇到^则入栈（当作括号处理，即高优先级操作符）。
+    */
+    SqStack S;
+    InitStack(S);
+    ElemType x;
+    int index = 0;
+    for (int i = 0; expr[i] != '\0'; i++) {
+        if (expr[i] >= 97 && expr[i] <= 127) { // 是字符，即操作数
+            rexpr[index++] = expr[i];
+        } else {
+            if (StackEmpty(S)) {               // 如果栈空，入栈
+                Push(S, expr[i]);
+            } else {
+                if (expr[i] == '+' || expr[i] == '-' || expr[i] == '*' || expr[i] == '/') {
+                    while(!StackEmpty(S)) {
+                        GetTop(S, x);
+                        if (priority(expr[i]) <= priority(x)) { // 如果栈顶优先级比当前大，则出栈
+                            Pop(S, x);
+                            rexpr[index++] = x;
+                        } else {
+                            break;
+                        }
+                    }
+                    Push(S, expr[i]);                           // 入栈
+                } else if (expr[i] == '(') {                    // 入栈
+                    Push(S, expr[i]);
+                } else if (expr[i] == ')') {
+                    while (!StackEmpty(S)) {
+                        Pop(S, x);
+                        if (x != '(') {                         // 将括号内操作符出栈
+                            rexpr[index++] = x;
+                        } else {
+                            break;
+                        }
+                    }
+                } else {
+                    Push(S, expr[i]);
+                }
+            }
+        }
+    }
+    while(!StackEmpty(S)) {                                     // 将剩余出栈
+        Pop(S, x);
+        rexpr[index++] = x;
+    }
+    rexpr[index++] = '\0';
+}
+
 int main() {
     char s1[]="IOIIOIOO";
     char s2[]="IOOIOIIO";
@@ -166,7 +230,10 @@ int main() {
     // TrainSchedule(S, vans);
     // puts(vans);
 
-    printf("%d\n", CalcPoly(3, 123)); // 把n增大会算出来负的，很正常因为这个多项式增长太快了，就越界了，
+    // printf("%d\n", CalcPoly(3, 123)); // 把n增大会算出来负的，很正常因为这个多项式增长太快了，就越界了，
     
     // puts("no\0ok"+3*ValidCheck(s3));
+    char rexpr[100];
+    expr_convert("a+b-a*((c+d)/e-f)+g", rexpr);
+    puts(rexpr);
 }
