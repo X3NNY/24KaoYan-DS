@@ -14,7 +14,7 @@ typedef struct BiTNode {                // 链式存储
     struct BiTNode *lchild, *rchild;    // 左右孩子指针
 }BiTNode, *BiTree;
 
-// 5.1 作业
+// 5.2 作业
 
 int LCA(SqTree T, int i, int j) {     // 5. 找到最近公共祖先
     /**
