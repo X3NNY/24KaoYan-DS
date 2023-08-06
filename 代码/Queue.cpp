@@ -1,38 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#define MaxSize 50
-
-typedef int ElemType; // 数据类型
-
-typedef struct {
-    ElemType data[MaxSize];
-    int front, rear;
-}SqQueue;
-
-void InitQueue(SqQueue &Q) { // 初始化循环队列，后续都为循环队列操作，普通的去掉取模就行
-    Q.rear = Q.front = 0;
-}
-
-bool isEmpty(SqQueue Q) { // 判空
-    return Q.rear == Q.front;
-}
-
-bool EnQueue(SqQueue &Q, ElemType x) { // 入队
-    if((Q.rear+1)%MaxSize == Q.front) return false; // 队满
-    Q.data[Q.rear] = x;
-    Q.rear = (Q.rear+1)%MaxSize; // 队尾+1取模 
-    return true;
-}
-
-bool DeQueue(SqQueue &Q, ElemType &x) { // 出队
-    if(Q.rear == Q.front) return false; // 对空
-    x = Q.data[Q.front];
-    Q.front = (Q.front+1)%MaxSize; // 队首+1 取模
-    return true;
-}
-
+#include "Queue.h"
+#include "Stack.h"
 
 // 以下为代码题答案
 
@@ -57,29 +24,6 @@ bool DeQueueWithTag(SqQueue &Q, ElemType &x) { // 出队
     x = Q.data[Q.front];
     Q.front = (Q.front+1)%MaxSize; // 队首+1 取模
     if(Q.rear == Q.front) tag = true;
-    return true;
-}
-
-
-typedef struct {
-    ElemType data[MaxSize]; // 存放数据
-    int top;                // 栈顶指针
-} SqStack;
-bool StackEmpty(SqStack &S) { // 判空
-    return S.top == -1;
-}
-bool Push(SqStack &S, ElemType x) { // 入栈
-    if(S.top == MaxSize - 1) { // 栈满
-        return false;
-    }
-    S.data[++S.top] = x;
-    return true;
-}
-bool Pop(SqStack &S,ElemType &x) { // 出栈
-    if(S.top == -1) { // 栈空
-        return false;
-    }
-    x = S.data[S.top--];
     return true;
 }
 

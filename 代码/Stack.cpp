@@ -1,47 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#define MaxSize 50
-
-typedef int ElemType; // 数据类型
-
-typedef struct {
-    ElemType data[MaxSize]; // 存放数据
-    int top;                // 栈顶指针
-} SqStack;
-
-void InitStack(SqStack &S) { // 初始化
-    S.top = -1; // 初始化栈顶指针
-}
-
-bool StackEmpty(SqStack &S) { // 判空
-    return S.top == -1;
-}
-
-bool Push(SqStack &S, ElemType x) { // 入栈
-    if(S.top == MaxSize - 1) { // 栈满
-        return false;
-    }
-    S.data[++S.top] = x;
-    return true;
-}
-
-bool Pop(SqStack &S,ElemType &x) { // 出栈
-    if(S.top == -1) { // 栈空
-        return false;
-    }
-    x = S.data[S.top--];
-    return true;
-}
-
-bool GetTop(SqStack &S,ElemType &x) { // 读取栈顶
-    if(S.top == -1) { // 栈空
-        return false;
-    }
-    x = S.data[S.top];
-    return true;
-}
+#include "Stack.h"
 
 
 // 以下为作业代码答案
@@ -57,7 +14,7 @@ bool GetTop(SqStack &S,ElemType &x) { // 读取栈顶
 bool ValidCheck(char* s) { // 3. 合法性判断
     SqStack S;
     InitStack(S);
-    int x = 1;
+    ElemType x = 1;
     bool flag = true;
     for(int i = 0;s[i] != '\0';i++) {
         if(s[i] == 'I') {
