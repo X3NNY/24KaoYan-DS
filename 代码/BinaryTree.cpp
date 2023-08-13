@@ -174,7 +174,7 @@ BiTree PreInOrderCreate(ElemType A[], ElemType B[], int ls, int le, int rs, int 
      * 先序第一个位置是根，然后在中序中找根的位置，将树划分为两半
      * 然后就可以递归的对左右子树分别建树了
      * ls，le分别代表A中的起始结束位置，rs，re同理
-    */ElemType pre[] = {1,2,4,5,3};ElemType in[] = {4,2,5,1,3};
+    */
     int i;
     BiTree T = (BiTNode*)malloc(sizeof(BiTNode));
     T->data = A[ls];                                       // 前序的第一个就是根结点
@@ -195,6 +195,171 @@ BiTree PreInOrderCreate(ElemType A[], ElemType B[], int ls, int le, int rs, int 
     return T;
 }
 
+bool IsCompleteTree(BiTree T) { // 7. 判断是否完全二叉树
+    /**
+     * 显然完全二叉树的定时是前n-1层是满二叉树，即每层都有2^i-1个结点
+     * 可以通过遍历计数的方式，也可以通过判断叶结点是否在最后两层来操作
+    */
+    if (!T) return 1;               // 注意，空树是满二叉树
+    BiTree p;
+    ElemType x;
+    SqQueue Q;
+    InitQueue(Q);
+    EnQueue(Q, (intptr_t)T);
+    while(!isEmpty(Q)) {
+        DeQueue(Q, x);
+        p = BiTree(x);
+        if (p) {                                // 如果非空，子结点入队
+            EnQueue(Q, (intptr_t)p->lchild);
+            EnQueue(Q, (intptr_t)p->rchild);
+        } else {                                // 遇到空结点说明上一层是叶子结点了，此时后续应该都为空结点
+            while(!isEmpty(Q)) {
+                DeQueue(Q, x);
+                if(BiTree(x)) return 0;         // 还有非空，则返回0
+            }
+        }
+    }
+    return 1;
+}
+
+int CountDegree2(BiTree T) { // 8. 计算双分支结点个数
+    /**
+     * 其实就是计算度为2的结点个数，可递归可层次遍历，
+     * 层次遍历则是每次如果左右结点都存在则计数加1，递归则是个数等于左子树个数+右子树个数+当前结点是否度为2
+    */
+    if (!T) return 0;
+    int count = 0;
+    // 思路一：层次遍历
+    BiTree p;
+    ElemType x;
+    SqQueue Q;
+    InitQueue(Q);
+    EnQueue(Q, (intptr_t)T);
+    while(!isEmpty(Q)) {
+        DeQueue(Q, x);
+        p = BiTree(x);
+        if (p->lchild) {                                // 如果非空，子结点入队
+            EnQueue(Q, (intptr_t)p->lchild);
+        } if (p->rchild) {
+            EnQueue(Q, (intptr_t)p->rchild);
+        }
+        if (p->lchild && p->rchild) {
+            count++;
+        }
+    }
+
+    // 思路二：递归
+    if (T->lchild) {
+        count += CountDegree2(T->lchild);
+    }
+    if (T->rchild) {
+        count += CountDegree2(T->rchild);
+    }
+    if (T->lchild && T->rchild) count++;
+
+    return count;
+}
+
+void SwapChildTree(BiTree T) { // 9. 交换所有结点左右子树
+    /**
+     * 显然涉及到所有结点我们都需遍历，我们可以用递归轻松分解问题
+     * 递归交换左子树中结点子树
+     * 递归交换右子树中结点子树
+     * 交换左右子树
+    */
+    if (T->lchild) SwapChildTree(T->lchild);
+    if (T->rchild) SwapChildTree(T->rchild);
+    BiTree p = T->lchild;
+    T->lchild = T->rchild;
+    T->rchild = p;
+}
+
+int count = 1;
+ElemType NthPreElem(BiTree T, int k) { // 10. 求先序序列中第k个结点的值
+    /**
+     * 先序递归时计数即可，可以用全局遍历或者引用传参即可
+    */
+    ElemType r;
+    if(T) {
+        if (count == k) {
+            return T->data;
+        }
+        count++;
+        r = NthPreElem(T->lchild, k);
+        if (r != '#') return r;
+
+        r = NthPreElem(T->rchild, k);
+        if (r != '#') return r;
+    }
+    return '#';
+}
+
+void RemoveChildTree(BiTree T) {
+    if (T) {
+        RemoveChildTree(T->lchild);
+        RemoveChildTree(T->rchild);
+        free(T);
+    }
+}
+void RemoveElemByValue(BiTree T, ElemType x) { // 11. 删除结点值为x的且以结点为根的子树，并释放空间
+    /**
+     * 和遍历一样，删除也需要遍历检查，当发现不合法时，也是遍历free掉该删除的子树
+    */
+    if (!T) return;
+    if (T->lchild) {
+        if (T->lchild->data == x) {
+            RemoveChildTree(T->lchild);
+            T->lchild = NULL;                   // 记得赋空
+        } else {
+            RemoveElemByValue(T->lchild, x);
+        }
+    }
+    if (T->rchild) {
+        if (T->rchild->data == x) {
+            RemoveChildTree(T->rchild);
+            T->rchild = NULL;                   // 记得赋空
+        } else {
+            RemoveElemByValue(T->rchild, x);
+        }
+    }
+}
+
+void SearchAllAncestors(BiTree T, ElemType x) { // 12. 打印值为x的结点（最多存在一个）的所有祖先
+    /**
+     * 遇到这种需要打印所有东西的显然我们可以利用栈来保存祖先
+     * 然后进行后序遍历，当找到值为x的结点时，此时栈中元素便是x的祖先
+    */
+    SqStack S;
+    InitStack(S);
+    BiTree p = T, r;
+    ElemType k;
+    while (p || !StackEmpty(S)) {
+        if (p && p->data == x) {     // 遍历到x了
+            while (!StackEmpty(S)) {
+                Pop(S, k);
+                p = ((BiTree)k);
+                printf("%d ", p->data);
+            }
+            puts("");
+            return;
+        }
+        if (p) {                                // 如果当前子树还没遍历完
+            Push(S, (intptr_t)p);  
+            p = p->lchild;                      // 继续遍历左子树
+        } else {
+            GetTop(S, k);                       // 出栈，即上一个左子树已经遍历完，此时遍历上一轮压栈的子树的右子树
+            if (((BiTree)k)->rchild != NULL && \
+                ((BiTree)k)->rchild != r) {     // 如果上一个结点还有右子树且未访问 则还需遍历右子树
+                p = ((BiTree)k)->rchild;
+            } else {
+                Pop(S, k);
+                r = ((BiTree)k);                // 记录最近被访问的结点
+                p = NULL;                       // 将结点置空
+            }
+        }
+    }
+    puts("");
+}
 
 int main() {
     BiTree T = (BiTree)malloc(sizeof(BiTNode));
@@ -227,8 +392,17 @@ int main() {
 
     // int x = GetHeight(T);printf("%d\n", x);
 
-    ElemType pre[] = {1,2,4,5,3};ElemType in[] = {4,2,5,1,3};
-    BiTree T2 = PreInOrderCreate(pre, in, 0, 4, 0, 4);
-    PreOrder(T2);InOrder(T2);
+    // ElemType pre[] = {1,2,4,5,3};ElemType in[] = {4,2,5,1,3};
+    // BiTree T2 = PreInOrderCreate(pre, in, 0, 4, 0, 4);
+    // PreOrder(T2);InOrder(T2);
+
+    // puts("no\0ok"+IsCompleteTree(T)*3);
+
+    // printf("%d\n", CountDegree2(T));
+    // SwapChildTree(T);PreOrder(T);
+
+    // printf("%d\n", NthPreElem(T, 5));
+    // RemoveElemByValue(T, 4);PreOrder(T);
+    SearchAllAncestors(T, 4);
     return 0;
 }
