@@ -17,6 +17,7 @@ typedef struct ArcNode {                        // 边表结点
 
 typedef struct VNode {                          // 顶点表结点
     VertexType data;                            // 边结点指针
+    ArcNode *first;                             // 第一条边结点指针
 }VNode, AdjList[MaxVertexNum];
 
 typedef struct {
