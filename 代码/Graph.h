@@ -24,3 +24,8 @@ typedef struct {
     AdjList vertices;                           // 邻接表
     int vexnum, arcnum;                         // 图的顶点数和边数
 }ALGraph;
+
+
+void visit(int v) {
+    printf("%d ", v);
+}
