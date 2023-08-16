@@ -1,6 +1,7 @@
 #include "Tree.h"
 #include "Stack.h"
 #include "Queue.h"
+#include "LinkedList.h"
 
 void PreOrder(BiTree T) { // 先序遍历
     if (T != NULL) {
@@ -361,6 +362,140 @@ void SearchAllAncestors(BiTree T, ElemType x) { // 12. 打印值为x的结点（
     puts("");
 }
 
+BiTNode* ANCESTOR(BiTree T, BiTNode* p, BiTNode* q) {   // 13. 找到p和q的最近公共祖先
+    /**
+     * 之前是数组存储的找LCA可以方便的找到双亲，但是这里是链式存储的
+     * 同样，我们可以考虑非递归的后序遍历，因为是LRN，所以当遍历到p时，栈内元素全是p的祖先，
+     * 然后保存此时状态，再继续遍历到q，此时栈内全是q的祖先，再从后往前找第一个公共祖先即可。
+    */
+    SqStack S;
+    BiTNode *TS1[MAXLEN], *TS2[MAXLEN], *res = NULL;
+    int len1, len2;
+    InitStack(S);
+    BiTree tp = T, r;
+    ElemType k;
+    while (tp || !StackEmpty(S)) {
+        if (tp == p) {                          // 遍历到p了
+            int i = 0;
+            while(!StackEmpty(S)) {             // 保存栈内元素
+                Pop(S, k);
+                TS1[i++] = (BiTNode*)k;
+            }
+            len1 = i;
+            while (i) {                         // 恢复栈
+                Push(S, (intptr_t)TS1[--i]);
+            }
+        } else if (tp == q) {                   // 遍历到q了
+            int i = 0;
+            while(!StackEmpty(S)) {             // 保存栈内元素
+                Pop(S, k);
+                TS2[i++] = (BiTNode*)k;
+            }
+            len2 = i;
+            while (i) {                         // 恢复栈
+                Push(S, (intptr_t)TS2[--i]);
+            }
+        }
+        if (tp) {                               // 如果当前子树还没遍历完
+            Push(S, (intptr_t)tp);  
+            tp = tp->lchild;                    // 继续遍历左子树
+        } else {
+            GetTop(S, k);                       // 出栈，即上一个左子树已经遍历完，此时遍历上一轮压栈的子树的右子树
+            if (((BiTree)k)->rchild != NULL && \
+                ((BiTree)k)->rchild != r) {     // 如果上一个结点还有右子树且未访问 则还需遍历右子树
+                tp = ((BiTree)k)->rchild;
+            } else {
+                Pop(S, k);
+                r = ((BiTree)k);                // 记录最近被访问的结点
+                tp = NULL;                      // 将结点置空
+            }
+        }
+    }
+    for (int i = len1-1; i >= 0; i--) {          // 我们是从栈顶开始存的，也就是根结点在TS最后面
+        if (TS1[i] == TS2[len2-(len1-i)]) {      // 相等，说明是公共祖先
+            res = TS1[i];                        // 不断更新，找到最近的
+        } else break;
+    }
+    return res;
+}
+
+int GetWidth(BiTree T) {    // 14. 求非空二叉树的宽度
+    /**
+     * 显然使用层次遍历，每次更新最大结点数即可
+    */
+    BiTree p;
+    ElemType x;
+    BiTree Q[MaxSize];
+    int last = 0,
+        front = -1,                 // 队首
+        rear = -1,                  // 队尾
+        max = 0;                   // 记录上一层最后结点位置
+    Q[++rear] = T;
+    while(front < rear) {
+        p = Q[++front];             // 出队
+        if (p->lchild != NULL) {
+            Q[++rear] = p->lchild;  // 入队
+        }
+        if (p->rchild != NULL) {    
+            Q[++rear] = p->rchild;  // 入队
+        }
+        if(front == last) {         // 如果遍历到上一轮最后一个结点
+            if (rear - front > max) max = rear - front;
+            last = rear;            // 同时代表当前层的所有结点都已入队，更新最后一个结点位置
+        }
+    }
+    return max;
+}
+
+void PreToPost(ElemType pre[], int ls, int le, ElemType post[], int rs, int re) {   // 15. 满二叉树先序转后序
+    /**
+     * 先序是NLR，后序是LRN，并且是满二叉树，所以左右序列长度相同，显然我们只需要把
+     * NLR -> LRN 然后LR的分割点就是中间，再分别对左右子树做转换即可
+    */
+    int mid = (le - ls) / 2;
+    if (mid >= 0) {
+        post[re] = pre[ls];
+        PreToPost(pre, ls+1, mid+mid, post, rs, rs+mid-1);
+        PreToPost(pre, ls+mid+1, le, post, rs+mid, re-1);
+    }
+}
+
+void GetLeafNodeList(BiTree T, BiTree &pre, BiTree &head) {    // 16. 将叶子结点从左到右变成一个链表
+    /**
+     * 显然我们使用任意一种遍历都是LR，所以满足从左到右，然后记录一下叶子结点即可
+     * 这里我们让二叉树结点作为链表使用rchild指向后继
+    */
+    if (T) {
+        GetLeafNodeList(T->lchild, pre, head);
+        if (T->lchild == NULL && T->rchild == NULL) {   // 叶子结点
+            if (pre == NULL) {                          // 第一个结点
+                head = T;
+                pre = T;
+            } else {
+                pre->rchild = T;
+                pre = T;
+            }
+        }
+        GetLeafNodeList(T->rchild, pre, head);
+        pre->rchild = NULL;
+    }
+}
+
+bool IsSimilar(BiTree T1, BiTree T2) {  // 17. 判断两棵二叉树是否相似
+    /**
+     * 定义已经说明白了，都为空或只有一个结点相似，或者递归比较子树是否相似
+    */
+    if (T1 == NULL && T2 == NULL) {             // 都为空 相似
+        return true;
+    } else if (T1 == NULL || T2 == NULL) {      // 一个空 不相似
+        return false;
+    }
+    bool left = IsSimilar(T1->lchild, T2->lchild);  // 判断左子树是否相似
+    bool right = IsSimilar(T1->rchild, T2->rchild); // 判断右子树是否相似
+    return left && right;
+}
+
+
 int main() {
     BiTree T = (BiTree)malloc(sizeof(BiTNode));
     T->data = 1;
@@ -369,7 +504,10 @@ int main() {
     T->rchild = (BiTree)malloc(sizeof(BiTNode));
     T->rchild->data = 3;
 
-    T->rchild->lchild = NULL;
+    T->rchild->lchild = (BiTree)malloc(sizeof(BiTNode));
+    T->rchild->lchild->data = 6;
+    T->rchild->lchild->lchild = NULL;
+    T->rchild->lchild->rchild = NULL;
     T->rchild->rchild = NULL;
 
     
@@ -403,6 +541,12 @@ int main() {
 
     // printf("%d\n", NthPreElem(T, 5));
     // RemoveElemByValue(T, 4);PreOrder(T);
-    SearchAllAncestors(T, 4);
+    // SearchAllAncestors(T, 4);
+    // visit(ANCESTOR(T, T->lchild->lchild, T->lchild->rchild));
+    // printf("%d\n", GetWidth(T));
+
+    // ElemType pre[] = {1,2,4,5,3}, post[] = {0, 0, 0, 0, 0};
+    // PreToPost(pre, 0, 4, post, 0, 4);
+    // for(int i = 0; i < 5; i++) printf("%d ", post[i]);
     return 0;
 }
