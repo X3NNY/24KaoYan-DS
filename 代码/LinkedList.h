@@ -1,7 +1,5 @@
 #include "stdafx.h"
 
-typedef int ElemType; // 数据类型
-
 typedef struct LNode {  // 定义结点类型
     ElemType data;      // 数据域
     struct LNode *next; // 指针域

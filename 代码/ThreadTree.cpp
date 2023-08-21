@@ -91,6 +91,34 @@ void Inorder(ThreadNode *T) {   // 线索二叉树的中序遍历
         visit(p);
 }
 
+
+// 5.3作业
+
+ThreadNode* SearchPreNode(ThreadTree T, ThreadNode* p) { // 18. 查找中序线索二叉树中指定结点在后序下的前驱结点
+    /**
+     * 在后序序列中，若结点p有右子女，则右子女是其前驱，若无右子女有左子女，则左子女是前驱。
+     * 否则左线索为某祖先结点f，p是f的右子树中中序遍历的第一个结点，则f若有左子女，则左子女是p的前驱。
+     * 否则同样寻找f的祖先找到有左子女的为止。
+     * 若找不到满足条件的结点，说明p是中序遍历的第一个结点，此时p在中序和后序下均无前驱。
+    */
+    if (p->rtag != 1) {                             // 有右子女
+        return p->rchild;
+    } else if (p->ltag != 1) {                      // 有左子女
+        return p->lchild;
+    } else if (p->lchild == NULL) {                 // 说明没有前驱，此时也就是p是第一个结点
+        return NULL;
+    } else {
+        while(p->ltag == 1 && p->lchild != NULL) {  // 找到有左子女的祖先
+            p = p->lchild;
+        }
+        if (p->ltag != 1) {                         // 如果有左子女
+            return p->lchild;
+        } else {                                    // 否则说明没有前驱
+            return NULL;
+        }
+    }
+}
+
 int main() {
     ThreadTree T = (ThreadTree)malloc(sizeof(ThreadNode));
     T->data = 1;

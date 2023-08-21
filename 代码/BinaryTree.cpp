@@ -495,6 +495,47 @@ bool IsSimilar(BiTree T1, BiTree T2) {  // 17. 判断两棵二叉树是否相似
     return left && right;
 }
 
+void CalcWPL(BiTree T, int k, int &sum) {
+    if (T->lchild == NULL && T->rchild == NULL) {   // 叶结点
+        sum += k*T->data;
+    } else {
+        if (T->lchild) CalcWPL(T->lchild, k+1, sum);
+        if (T->rchild) CalcWPL(T->rchild, k+1, sum);
+    }
+}
+
+int GetWPL(BiTree T) {  // 19. 求二叉树T的WPL
+    /**
+     *  利用递归，将层数作为参数传递
+    */
+    int sum = 0;
+    CalcWPL(T, 0, sum);
+    return sum;
+}
+
+void CalcExpr(BiTree T, char s[], int &i) {
+    if (!T) return;
+    s[i++] = '(';
+    if (T->lchild) {
+        CalcExpr(T->lchild, s, i);
+    }
+    s[i++] = 48+T->data;
+    if (T->rchild) {
+        CalcExpr(T->rchild, s, i);
+    }
+    s[i++] = ')';
+}
+
+void ExprConvert(BiTree T, char s[]) { // 20. 将给定的表达式树转换为等价的中缀表达式。
+    /**
+     * 按照我们笔记说的，遇到操作符o（非叶结点）则等于 -> (左子树表达式o右子树表达式)
+     * 无脑加括号就完事了，要想去掉多的括号可以判断一下是叶结点就不用加括号了
+    */
+    int i = 0;
+    CalcExpr(T, s, i);
+    s[i++] = '\0';
+}
+
 
 int main() {
     BiTree T = (BiTree)malloc(sizeof(BiTNode));
@@ -548,5 +589,8 @@ int main() {
     // ElemType pre[] = {1,2,4,5,3}, post[] = {0, 0, 0, 0, 0};
     // PreToPost(pre, 0, 4, post, 0, 4);
     // for(int i = 0; i < 5; i++) printf("%d ", post[i]);
+    // printf("%d ", GetWPL(T));
+    char s[128];ExprConvert(T, s);
+    puts(s);
     return 0;
 }
