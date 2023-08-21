@@ -299,6 +299,42 @@ void FindPath(ALGraph G, int i, int j, int path[], int d) {     // 5. 找到i到
     visited[i] = false;                 // 设置为可访问，因为还存在其他路径也使用这个顶点
 }
 
+// 6.4 作业
+
+void DFS(MGraph G, int v, int &time, int finishTime[]) {
+    visited[v] = true;
+    for(int w = FirstNeighbor(G, v); w >= 0; w = NextNeighbor(G, v, w)) {
+        if (!visited[w]) {
+            DFS(G, w, time, finishTime);
+        }
+    }
+    time++;
+    finishTime[v] = time;
+}
+
+void DAGTopu(MGraph G) {    // 6. 利用DFS对DAG进行拓扑排序
+    /**
+     * DFS是按根子顺序访问。
+     * 但一个结点可能有多个入边，所以不能直接以DFS顺序作为拓扑序，但是我们可以发现当DFS结束时，最后回到的点一定是
+     * 当前子图的源点。因为它没有任何入边，同理，第二个点则为源点后一点，因为它除了来着源点的入边外没有其他入边。
+     * 由此可以得到拓扑序列。
+    */
+    int finishTime[MaxVertexNum];
+    for (int i = 0; i < G.vexnum; i++) {
+        visited[i] = false;
+    }
+    int time = 0;
+    for (int i = 0; i < G.vexnum; i++) {
+        if (!visited[i]) {
+            DFS(G, i, time, finishTime);
+        }
+    }
+    for (int i = 0; i < G.vexnum; i++) {
+        printf("%d ", finishTime[i]);
+    }
+    // 将每个结点finishTime从大到小排序得到的结点序列就是拓扑排序
+}
+
 int main() {
     MGraph G;
     G.vexnum = 7;
@@ -348,5 +384,6 @@ int main() {
     // puts("no\0yes"+3*IsTree(G));
     // DFSNoRecursion(AG, 0);
     int path[10];
-    FindPath(AG, 0, 6, path, -1);
+    // FindPath(AG, 0, 6, path, -1);
+    // DAGTopu(G); 
 }
