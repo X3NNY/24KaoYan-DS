@@ -1,4 +1,5 @@
 #include "Search.h"
+#include "Tree.h"
 
 int SearchSeq(SSTable ST, ElemType key) { // 顺序查找
     ST.elem[0] = key;                     // 哨兵，目的是为了不用处理越界情况
@@ -18,6 +19,35 @@ int BinarySearch(SSTable ST, ElemType key) {    // 二分查找
         }
     }
     return ST.elem[l] == key ? l : -1;          // 这里不用担心返回l还是r还是mid，跳出时候三者值相等                     
+}
+
+BiTNode *BSTSearch(BiTree T, ElemType key) {    // 二叉排序树查找
+    while (T != NULL && key != T->data) {       // 非空且值不等，则递归寻找
+        if (key < T->data) T = T->lchild;
+        else T = T->rchild;
+    }
+    return T;                                   // 找到相等的结点或为空
+}
+
+bool BSTInsert(BiTree T, ElemType key) {        // 二叉排序树插入
+    if (T == NULL) {                            // 为空直接插入
+        T = (BiTree)malloc(sizeof(BiTNode));
+        T->data = key;
+        T->lchild = T->rchild = NULL;
+        return true;
+    } else if (key == T->data) {                // 已存在，插入失败
+        return false;
+    } else if (key < T->data) {                 // 小于则插入到左子树中
+        return BSTInsert(T->lchild, key);
+    } else {                                    // 否则插入右子树中
+        return BSTInsert(T->rchild, key);
+    }
+}
+
+void BSTCreate(BiTree T, ElemType key[], int n) {  // 二叉排序树的构建
+    for (int i = 0; i < n; i++) {
+        BSTInsert(T, key[i]);
+    }
 }
 
 // 7.2 作业答案
