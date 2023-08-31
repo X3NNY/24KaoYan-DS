@@ -1,5 +1,11 @@
 #include "stdafx.h"
 
+void swap(ElemType &a, ElemType &b) {
+    ElemType tp = a;
+    a = b;
+    b = tp;
+}
+
 void InsertSort(ElemType A[], int n) {              // 直接插入排序
     int j;
     ElemType tp;
@@ -64,7 +70,6 @@ void BubbleSort(ElemType A[], int n) {      // 冒泡排序
 }
 
 
-
 void QuickSort(ElemType A[], int low, int high) {   // 快速排序
     if (low < high) {                               // 不为空
         ElemType pivot = A[low];                    // 一般选择第一个元素为枢轴
@@ -83,13 +88,52 @@ void QuickSort(ElemType A[], int low, int high) {   // 快速排序
 }
 
 
-// 8.3 作业
-
-void swap(ElemType &a, ElemType &b) {
-    ElemType tp = a;
-    a = b;
-    b = tp;
+void SelectSort(ElemType A[], int n) {      // 选择排序
+    for (int i = 0; i < n-1; i++) {         // 共n-1轮
+        int min = i;
+        for (int j = i+1; j < n; j++) {     // 找到最小的元素
+            if (A[j] < A[min]) min = j;
+        }
+        if (min != i) swap(A[i], A[min]);   // i与min位进行交换
+    }
 }
+
+void HeadAdjust(ElemType A[], int k, int n) {   // 调整以k为根的堆
+    /**
+     * 思路就是一直往更大的子树走
+     * 如果发现更大的子树都小于则跳出，否则则交换。
+     * 当前正确性的前提是子树也是一个大根堆，所以BuildMaxHeap是从大往下遍历的
+     * 对应树就是从底往上遍历
+    */
+    A[0] = A[k];                                // 暂存子树根结点
+    for (int i = 2*k; i <= n; i *= 2) {         // 一直走向左子树
+        if (i < n && A[i] < A[i+1]) {           // 如果兄弟（根的右子树）值要大
+            i++;                                // 则走向右子树
+        }
+        if (A[0] >= A[i]) break;                // 如果 根结点比i大 则跳出
+        else {
+            A[k] = A[i];                        // 否则说明i更大，则i放入根的位置。
+            k = i;
+        }
+    }
+    A[k] = A[0];                                // 将根放回序列中
+}
+
+void BuildMaxHeap(ElemType A[], int n) {    // 建立堆
+    for (int i = n/2; i > 0; i--) {         // 从n/2~1，不断调整堆
+        HeadAdjust(A, i, n);
+    }
+}
+
+void HeapSort(ElemType A[], int n) {        // 堆排序
+    BuildMaxHeap(A, n);
+    for (int i = n; i > 1; i--) {           // 从后往前交换
+        swap(A[1], A[i]);                   // A[1]是此时堆最大的，放到最后
+        HeadAdjust(A, 1, i-1);              // 调整以1为首的堆，重新使得A[1]最大
+    }
+}
+
+// 8.3 作业
 
 void Bubble2Sort(ElemType A[], int n) {     // 2. 双向冒泡排序
     int l = 0, r = n-1;
